@@ -3,6 +3,7 @@ FROM alpine:${OS_VER}
 RUN set -eux;\
     apk --no-cache add\
  bash\
+ ccache\
  gcc\
  git\
  glib-dev\
@@ -13,6 +14,7 @@ RUN set -eux;\
  patch\
  perl\
  pkgconf\
+ python2\
  python3\
  samurai\
  xz\
