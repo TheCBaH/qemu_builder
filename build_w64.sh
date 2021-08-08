@@ -28,6 +28,17 @@ do_w64_qemu_config() {
     fi
 }
 
+case $target in
+    w64-qemu)
+        do_w64_qemu_config
+        ;;
+    static)
+        flags="$flags --static"
+        flags="$flags --enable-kvm"
+        flags="$flags --disable-stack-protector"
+        ;;
+esac
+
 if $configure --help | grep -q 'with-git-submodules'; then
     flags="$flags --with-git-submodules=validate"
 fi
@@ -42,16 +53,6 @@ if grep -q enable-lto $configure; then
     targets="qemu-img${_exe} qemu-system-x86_64${_exe}"
 fi
 
-case $target in
-    w64-qemu)
-        do_w64_qemu_config
-        ;;
-    static)
-        flags="$flags --static"
-        flags="$flags --enable-kvm"
-        flags="$flags --disable-stack-protector"
-        ;;
-esac
 
 env $env $configure --cc="ccache $cc $cflags"\
  --disable-capstone\
