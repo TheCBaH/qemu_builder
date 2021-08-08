@@ -3,24 +3,19 @@ FROM debian:${OS_VER}
 RUN set -eux;\
     apt-get update;\
     env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
- ca-certificates\
- curl\
- gnupg\
- ;\
-    apt-get clean; rm -rf /var/lib/apt/lists/*;\
-    echo DONE
-RUN set -eux;\
-    apt-get update;\
-    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
  build-essential\
+ ca-certificates\
  ccache\
+ curl\
  g++-mingw-w64\
  gcc\
+ gnupg\
  libc6-dev\
  make\
  mingw-w64-tools\
  mingw-w64-x86-64-dev\
  mingw-w64\
+ ninja-build\
  nsis\
  python3\
 ;\
@@ -36,29 +31,4 @@ RUN set -eux;\
 ;\
     echo DONE
 RUN set -eux;\
-    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
- ninja-build\
- dpkg-dev\
- ;\
-    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
- mingw64-x86-64-curl\
- mingw64-x86-64-gnutls\
- mingw64-x86-64-gtk3\
- mingw64-x86-64-libxml2\
- mingw64-x86-64-ncurses\
- mingw64-x86-64-sdl2\
- mingw64-x86-64-libusb1.0\
- mingw64-x86-64-usbredir\
- ;\
-    echo DONE
-RUN set -eux;\
-    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
- libglib2.0-dev\
- mingw-w64-tools\
- ;\
-    echo DONE
-RUN set -eux;\
-    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
- dpkg-dev\
- ;\
-    echo DONE
+    apt-get install -y --no-install-recommends python3-distutils
