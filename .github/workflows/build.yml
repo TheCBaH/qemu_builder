@@ -36,7 +36,7 @@ jobs:
     - if: steps.git_repo.outputs.cache-hit != 'true'
       run: ./repo.sh init
 
-  w64-qemu-build:
+  w64-build:
     runs-on: ubuntu-latest
     needs: [git, WinHv]
     strategy:
@@ -134,21 +134,25 @@ jobs:
           append = "root=/dev/vda console=ttyS0 modules=ext4"
         _EOF_
         cat >data/img/qemu.bat <<_EOF_
-        qemu-system-x86_64.exe -readconfig qemu.conf --accel tcg^
+        qemu-system-x86_64.exe -readconfig qemu.conf -m 1G -smp 1 --accel tcg^
          -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::1022-:22^
          -drive if=virtio,format=qcow2,file=alpine-${ALPINE_VERSION}-boot.img^
-         -no-reboot -nographic -vga none -display none --snapshot
+         -no-reboot -nographic -vga none -display none^
+         --snapshot
+        _EOF_
+        cat >data/img/qemu.sh <<_EOF_
+        ./qemu-system-x86_64 -readconfig qemu.conf -m 1G -smp 1 --accel tcg\\
+         -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::1022-:22\\
+         -drive if=virtio,format=qcow2,file=alpine-${ALPINE_VERSION}-boot.img\\
+         -no-reboot -nographic -vga none -display none\\
+         --snapshot
         _EOF_
         cat >data/img/qemu.rsp <<_EOF_
-
-
-
-
-
-        ${USER}
-        ${USER}
-        id
-        sudo reboot
+        sleep 60
+        echo ${USER};sleep 1
+        echo ${USER};sleep 1
+        echo id; sleep 1;
+        echo sudo reboot
         _EOF_
     - uses: actions/upload-artifact@v2
       with:
@@ -157,7 +161,7 @@ jobs:
 
   Test-w64-qemu:
     runs-on: windows-latest
-    needs: [w64-qemu-build, alpine-image]
+    needs: [w64-build, alpine-image]
     env:
       QEMU_VERSION: 'v6.0.0'
     steps:
@@ -177,13 +181,9 @@ jobs:
         ls
         ./qemu.bat
     - name: boot-alpine-bash
-      working-directory: ${{ runner.temp }}
+      working-directory: ${{ runner.temp }}/qemu
       timeout-minutes: 5
-      run: |
-        set -x
-        cd qemu
-        ls
-        (sleep 120;echo runner;sleep 5;echo runner;sleep 5;echo id;sleep 5;echo sudo reboot)|./qemu.bat
+      run: bash ./qemu.rsp | ./qemu.bat
       shell: bash
 
   linux-build:
@@ -237,9 +237,32 @@ jobs:
     - run: ./repo.sh update ${{ matrix.version }}
     - name: qemu-build
       run: make static.ccache
+    - name: qemu-tar
+      run: tar -C qemu/bin/ndebug/static/.release >static-qemu-${{ matrix.version }}.tar
     - name: static-qemu
       if: true
       uses: actions/upload-artifact@v2
       with:
         name: static-qemu-${{ matrix.version }}
-        path: qemu/bin/ndebug/static/.release
+        path: static-qemu-${{ matrix.version }}.tar
+
+  test-static-qemu:
+    runs-on: ubuntu-latest
+    needs: [linux-build, alpine-image]
+    env:
+      QEMU_VERSION: 'v6.0.0'
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: alpine.image
+        path: ${{ runner.temp }}/qemu
+    - uses: actions/download-artifact@v2
+      with:
+        name: static-qemu-${{ env.QEMU_VERSION }}
+        path: ${{ runner.temp }}/qemu
+    - name: qemu-ubuntu
+      working-directory: ${{ runner.temp }}/qemu
+      timeout-minutes: 5
+      run:
+        tar -xvf static-qemu-${{ env.QEMU_VERSION }}.tar
+        sh ./qemu.rsp | sh ./qemu.sh
