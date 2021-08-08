@@ -1,0 +1,84 @@
+name: wsl2_kernel
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: 0 1 * * MON
+  workflow_dispatch:
+
+jobs:
+  git:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: ID
+      id: repo-key
+      run: |
+        echo "::set-output name=date::$(/bin/date -u "+%Y%m")"
+    - name: git-cache
+      uses: actions/cache@v2
+      id: qemu_repo
+      with:
+        path: qemu.git
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ steps.repo-key.outputs.date }}
+        restore-keys: |
+          qemu.git-${{ secrets.CACHE_ID }}-${{ steps.repo-key.outputs.date }}
+          qemu.git-${{ secrets.CACHE_ID }}
+    - if: steps.wsl2_repo.outputs.cache-hit != 'true'
+      run: ./repo.sh init
+
+  qemu-w64.build:
+    runs-on: ubuntu-latest
+    needs: git
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['v6.0.0']
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: w64-qemu.image
+      run: |
+        set -x
+        image=$(make w64-qemu.image_print)
+        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$GITHUB_REPOSITORY/$image
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        old_id=''
+        if docker pull $IMAGE_ID; then
+          old_id=$(docker image inspect $IMAGE_ID --format "{{.ID}}")
+        fi
+        make w64-qemu.image DOCKER_BUILD_OPTS="--cache-from=$IMAGE_ID"
+        new_id=$(docker image inspect $image --format "{{.ID}}")
+        if [ "$old_id" != "$new_id" ]; then
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag $image $IMAGE_ID:latest
+          docker push $IMAGE_ID:latest || true
+          rm -rf ~/.docker
+        fi
+    - name: ccache
+      uses: actions/cache@v2
+      id: qemu_ccache
+      with:
+        path: .ccache
+        key: qemu-w64-ccache-${{ secrets.CACHE_ID }}-${{ matrix.tag}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+        restore-keys: |
+            qemu-w64-ccache-${{ secrets.CACHE_ID }}-${{ matrix.tag}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+            qemu-w64-ccache-${{ secrets.CACHE_ID }}-${{ matrix.tag}}
+    - name: ccache.init
+      if: steps.qemu_ccache.outputs.cache-hit != 'true'
+      run: make qemu-w64.ccache-init
+    - name: repo
+      uses: actions/cache@v2
+      with:
+        path: qemu.git
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
+        restore-keys: |
+          qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
+          qemu.git-${{ secrets.CACHE_ID }}
+    - if: steps.wsl2_repo.outputs.cache-hit != 'true'
+      run: ./repo.sh init
+    - run: ./repo.sh update ${{ matrix.tag}}
+    - name: qemu-build
+      run: make w64-qemu.image_run
