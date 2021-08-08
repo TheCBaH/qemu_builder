@@ -81,4 +81,4 @@ jobs:
       run: ./repo.sh init
     - run: ./repo.sh update ${{ matrix.version}}
     - name: qemu-build
-      run: make w64-qemu.image_run
+      run: make w64-qemu.ccache
