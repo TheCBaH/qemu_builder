@@ -52,8 +52,8 @@ CPU_CORES=$(shell getconf _NPROCESSORS_ONLN 2>/dev/null)
 %.ccache-show-stats:
 	${MAKE} ${basename $@}.image_run CMD='env CCACHE_DIR=${WORKSPACE}/.ccache ccache ${CCACHE_CONFIG} --show-stats'
 
-w64-qemu.ccache:
-	${MAKE} ${basename $@}.image_run CMD="env CCACHE_DIR=${WORKSPACE}/.ccache  ./build_w64.sh $(if ${CPU_CORES},-j${CPU_CORES})"
+%.ccache:
+	${MAKE} ${basename $@}.image_run CMD="env CCACHE_DIR=${WORKSPACE}/.ccache  ./build_w64.sh $(basename $@) $(if ${CPU_CORES},-j${CPU_CORES})"
 
 submodules:
 	git -C qemu -c protocol.version=2 submodule update --jobs 2 --depth 1 --init ui/keycodemapdb tests/fp/berkeley-testfloat-3 tests/fp/berkeley-softfloat-3 meson dtc capstone slirp

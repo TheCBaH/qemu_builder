@@ -1,0 +1,22 @@
+ARG OS_VER=latest
+FROM alpine:${OS_VER}
+RUN set -eux;\
+    apk --no-cache add\
+ bash\
+ gcc\
+ git\
+ glib-dev\
+ glib-static\
+ libc-dev\
+ linux-headers\
+ make\
+ patch\
+ perl\
+ pkgconf\
+ python3\
+ samurai\
+ xz\
+ zlib-dev\
+ zlib-static\
+ ;\
+    echo DONE
