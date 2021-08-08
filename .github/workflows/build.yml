@@ -13,20 +13,13 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v2
-    - name: ID
-      id: repo-key
-      run: |
-        echo "::set-output name=date::$(/bin/date -u "+%Y%m")"
     - name: git-cache
       uses: actions/cache@v2
       id: qemu_repo
       with:
         path: qemu.git
-        key: qemu.git-${{ secrets.CACHE_ID }}-${{ steps.repo-key.outputs.date }}
-        restore-keys: |
-          qemu.git-${{ secrets.CACHE_ID }}-${{ steps.repo-key.outputs.date }}
-          qemu.git-${{ secrets.CACHE_ID }}
-    - if: steps.wsl2_repo.outputs.cache-hit != 'true'
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('build_w64.sh') }}
+    - if: steps.git_repo.outputs.cache-hit != 'true'
       run: ./repo.sh init
 
   w64-qemu-build:
@@ -74,10 +67,7 @@ jobs:
       uses: actions/cache@v2
       with:
         path: qemu.git
-        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
-        restore-keys: |
-          qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
-          qemu.git-${{ secrets.CACHE_ID }}
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('build_w64.sh') }}
     - if: steps.repo.outputs.cache-hit != 'true'
       run: ./repo.sh init
     - run: ./repo.sh update ${{ matrix.version }}
