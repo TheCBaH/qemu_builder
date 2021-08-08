@@ -12,9 +12,9 @@ qemu_root=../../..
 configure=$qemu_root/configure
 
 do_w64_qemu_config() {
-    cross='x86_64-w64-mingw32'
-    cc="$cross-gcc"
-    flags="$flags --cross-prefix=$crosss-"
+    cross='x86_64-w64-mingw32-'
+    cc="${cross}gcc"
+    flags="$flags --cross-prefix=$cross"
     winhv=$qemu_root/../winhv
     if test -f $winhv/WinHvPlatform.h && $configure --help | grep -q 'whpx'; then
         flags="$flags --enable-whpx"
@@ -51,19 +51,13 @@ esac
  $flags
 
 make $@
-# --enable-whpx\
+
 release_dir=.release
 rm -rf $release_dir
 mkdir -p $release_dir
 
 do_w64_qemu_release() {
-    mv qemu-img.exe $release_dir
-    if [ -f x86_64-softmmu/qemu-system-x86_64.exe ]; then
-        mv x86_64-softmmu/qemu-system-x86_64.exe $release_dir
-    else
-        mv qemu-system-x86_64.exe $release_dir
-    fi
-    x86_64-w64-mingw32-strip $release_dir/*.exe
+    _exe='.exe'
     cp -pv \
     pc-bios/bios-256k.bin\
     pc-bios/efi-virtio.rom\
@@ -93,4 +87,15 @@ case $target in
     w64-qemu)
         do_w64_qemu_release
         ;;
+    static)
+        _exe=''
+        ;;
 esac
+
+mv qemu-img${_exe} $release_dir
+if [ -f x86_64-softmmu/qemu-system-x86_64${_exe} ]; then
+    mv x86_64-softmmu/qemu-system-x86_64${_exe} $release_dir
+else
+    mv qemu-system-x86_64${_exec} $release_dir
+fi
+{$cross}strip $release_dir/qemu*
