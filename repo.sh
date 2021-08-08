@@ -13,7 +13,7 @@ init)
         $_git init .
         $_git remote add origin -t master https://github.com/qemu/qemu.git
     fi
-    for b in master stable-5.0; do
+    for b in master stable-5.0 stable-4.0 stable-3.0; do
         $_git remote set-branches --add origin $b
     done
     $_git config user.email "you@example.com"
