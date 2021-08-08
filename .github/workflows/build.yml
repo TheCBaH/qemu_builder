@@ -82,7 +82,7 @@ jobs:
     - run: ./repo.sh update ${{ matrix.version}}
     - name: qemu-build
       run: make w64-qemu.ccache
-  - name: w64-qemu
+    - name: w64-qemu
       uses: actions/upload-artifact@v2
       with:
         name: w64-qemu-${{ matrix.tag }}
