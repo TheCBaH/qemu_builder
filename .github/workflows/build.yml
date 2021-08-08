@@ -13,6 +13,16 @@ jobs:
     steps:
     - run: Get-ChildItem "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots"
     - run: ls "c:/Program Files (x86)/Windows Kits/10/Include"
+    - run: ls "c:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0"
+    - run: ls "c:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/WinHv*"
+    - run: mkdir .release
+    - run: cp "c:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/WinHv*" .release
+    - name: w64-qemu
+      uses: actions/upload-artifact@v2
+      with:
+        name: WinHv-headers
+        path: .release
+
   git:
     runs-on: ubuntu-latest
     steps:
