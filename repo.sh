@@ -8,6 +8,7 @@ modules="ui/keycodemapdb tests/fp/berkeley-testfloat-3 tests/fp/berkeley-softflo
 _git="git -C $repo.git"
 case "$cmd" in
 init)
+    ref=${1:-master}
     if [ ! -d $repo.git ]; then
         mkdir -p $repo.git
         $_git init .
@@ -21,20 +22,23 @@ init)
     $_git commit -m empty --allow-empty
     $_git branch -M empty
     $_git -c protocol.version=2 fetch --no-tags --depth 1 origin
+    if [ $ref != master ]; then
+        $_git -c protocol.version=2 fetch --no-tags --depth 1 origin $ref
+        $_git update-ref refs/remotes/origin/$ref FETCH_HEAD~0
+    fi
     tree=$repo.git/.tree
     mkdir $tree
     git_dir=$(readlink -f $repo.git/.git)
     (
         cd $tree
-        git --git-dir $git_dir --work-tree . checkout origin/master
-        git --git-dir $git_dir --work-tree . submodule update --jobs 2 --depth 1 --init $modules meson
+        git --git-dir $git_dir --work-tree . checkout origin/$ref
+        git --git-dir $git_dir --work-tree . submodule update --jobs 2 --depth 1 --init $modules || true
         git --git-dir $git_dir --work-tree . checkout empty
     )
     rm -rf $tree
     ;;
 update)
     ref=$1;shift
-    $_git -c protocol.version=2 fetch --no-tags --depth 1 origin
     _git="git -C $repo"
     if [ -d $repo ]; then
         $_git checkout .
@@ -43,11 +47,13 @@ update)
         cp -rl $repo.git $repo
     fi
     $_git -c protocol.version=2 fetch --no-tags --depth 1 origin $ref
-    $_git reset --merge FETCH_HEAD
+    $_git reset --hard FETCH_HEAD
+    $_git clean -xdf
     if $_git submodule | grep meson; then
         modules="$modules meson"
     fi
 	$_git -c protocol.version=2 submodule update --jobs 2 --depth 1 --init $modules
+    $_git submodule foreach git clean -xdf
 	(cd qemu ; scripts/git-submodule.sh update $modules)
     ;;
 esac
