@@ -22,3 +22,9 @@ RUN set -eux;\
  zlib-static\
  ;\
     echo DONE
+RUN set -eux;\
+    apk --no-cache add\
+ pixman-dev\
+ pixman-static\
+ ;\
+    echo DONE

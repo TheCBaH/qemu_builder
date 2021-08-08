@@ -97,7 +97,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: w64-qemu-${{ matrix.version }}
-        path: qemu/bin/ndebug/x86_64-w64-mingw32/.release
+        path: qemu/bin/ndebug/w64-qemu/.release
 
   alpine-image:
     runs-on: ubuntu-latest
