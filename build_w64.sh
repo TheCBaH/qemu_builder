@@ -4,7 +4,7 @@ set -eu
 # based on https://qemu.weilnetz.de/doc/BUILD.txt
 mkdir -p qemu/bin/ndebug/x86_64-w64-mingw32
 cd qemu/bin/ndebug/x86_64-w64-mingw32
-echo ../../../configure --cc='ccache x86_64-w64-mingw32-gcc' --cross-prefix=x86_64-w64-mingw32- --disable-guest-agent-msi --disable-werror\
+../../../configure --cc='ccache x86_64-w64-mingw32-gcc' --cross-prefix=x86_64-w64-mingw32- --disable-guest-agent-msi --disable-werror\
  --target-list=x86_64-softmmu\
  --disable-capstone\
  --disable-guest-agent\
