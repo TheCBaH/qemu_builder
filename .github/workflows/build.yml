@@ -55,7 +55,7 @@ jobs:
       run: |
         set -x
         image=$(make w64-qemu.image_print)
-        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$GITHUB_REPOSITORY/$image
+        IMAGE_ID=ghcr.io/$GITHUB_REPOSITORY/$image
         IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
         old_id=''
         if docker pull $IMAGE_ID; then
@@ -158,4 +158,8 @@ jobs:
       with:
         name: w64-qemu-${{ env.QEMU_VERSION }}
         path: ${{ runner.temp }}/qemu
-    - run: ls ${{ runner.temp }}/qemu
+    - name: boot-alpine
+      run: |
+        ls ${{ runner.temp }}/qemu
+        cd ${{ runner.temp }}/qemu
+        qemu.bat
