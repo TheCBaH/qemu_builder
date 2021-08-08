@@ -121,8 +121,8 @@ jobs:
         sudo modprobe nbd max_part=0
         git -C alpine-make-vm-image apply <alpine/alpine_sync.patch
         make alpine-make-vm-image.image_run
-        make kvm_run CMD='./compact-qcow.sh data/img/alpine-$ALPINE_VERSION-boot.img'
-        make alpine-$ALPINE_VERSION.test.boot
+        make kvm_run CMD='./compact-qcow.sh data/img/alpine-${ALPINE_VERSION}-boot.img'
+        make alpine-${ALPINE_VERSION}.test.boot
     - uses: actions/upload-artifact@v2
       with:
         name: alpine.images
