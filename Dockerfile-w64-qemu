@@ -16,10 +16,10 @@ RUN set -eux;\
  mingw-w64-x86-64-dev\
  mingw-w64\
  ninja-build\
- nsis\
  python2\
  python3-distutils\
  python3\
+;\
     curl --show-error --silent https://qemu.weilnetz.de/debian/weilnetz.gpg >/etc/apt/trusted.gpg.d/weilnetz.gpg;\
     echo 'deb https://qemu.weilnetz.de/debian/ testing contrib' >/etc/apt/sources.list.d/cygwin.list;\
     apt-get update;\
