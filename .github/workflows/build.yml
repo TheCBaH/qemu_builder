@@ -176,13 +176,14 @@ jobs:
         cd ${{ runner.temp }}/qemu
         ls
         ./qemu.bat
-    - name: boot-alpine-basj
+    - name: boot-alpine-bash
       working-directory: ${{ runner.temp }}
+      timeout-minutes: 5
       run: |
         set -x
         cd qemu
         ls
-        (sleep 60;cat qemu.rsp)|./qemu.bat
+        (sleep 120;cat qemu.rsp)|./qemu.bat
       shell: bash
 
   linux-build:
