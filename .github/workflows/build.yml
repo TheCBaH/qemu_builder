@@ -124,5 +124,5 @@ jobs:
         make alpine-$ALPINE_VERSION.test.boot
     - uses: actions/upload-artifact@v2
       with:
-      name: alpine.images
+        name: alpine.images
         path: data/img
