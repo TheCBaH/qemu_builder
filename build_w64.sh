@@ -5,7 +5,7 @@ set -eu
 mkdir -p qemu/bin/ndebug/x86_64-w64-mingw32
 cd qemu/bin/ndebug/x86_64-w64-mingw32
 flags=''
-if ../../../configure --help | grep -q 'with-git-submodules'; them
+if ../../../configure --help | grep -q 'with-git-submodules'; then
     flags="$flags --with-git-submodules=validate"
 fi
 
