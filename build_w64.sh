@@ -17,6 +17,7 @@ qemu_root=../../..
 configure=$qemu_root/configure
 
 do_w64_qemu_config() {
+    _exe='.exe'
     cross='x86_64-w64-mingw32-'
     cc="${cross}gcc"
     flags="$flags --cross-prefix=$cross"
@@ -69,7 +70,6 @@ rm -rf $release_dir
 mkdir -p $release_dir
 
 do_w64_qemu_release() {
-    _exe='.exe'
 
     cp -pv \
     /usr/x86_64-w64-mingw32/sys-root/mingw/bin/iconv.dll\
