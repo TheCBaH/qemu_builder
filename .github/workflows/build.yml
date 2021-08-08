@@ -136,7 +136,7 @@ jobs:
         cat >data/img/qemu.bat <<_EOF_
         qemu-system-x86_64.exe -readconfig qemu.conf --accel tcg^
          -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::1022-:22^
-         -drive if=virtio,format=qcow2,file=alpine-3.10-boot.img^
+         -drive if=virtio,format=qcow2,file=alpine-${ALPINE_VERSION}-boot.img^
          -no-reboot -nographic -vga none -display none --snapshot
         _EOF_
     - uses: actions/upload-artifact@v2
