@@ -1,0 +1,304 @@
+name: qemu-builder
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: 0 1 * * MON
+  workflow_dispatch:
+
+jobs:
+  WinHv:
+    runs-on: windows-latest
+    steps:
+    - run: Get-ChildItem "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots"
+    - name: WinHV-headers
+      run: |
+        ls "c:/Program Files (x86)/Windows Kits/10/Include"
+        mkdir ${{ runner.temp }}.release
+        cp "c:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/WinHv*" ${{ runner.temp }}.release
+    - uses: actions/upload-artifact@v2
+      with:
+        name: WinHv-headers
+        path: ${{ runner.temp }}.release
+
+  git:
+    runs-on: ubuntu-latest
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: git-cache
+      uses: actions/cache@v2
+      id: qemu_repo
+      with:
+        path: qemu.git
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
+    - if: steps.git_repo.outputs.cache-hit != 'true'
+      run: ./repo.sh init
+
+  w64-build:
+    runs-on: ubuntu-latest
+    needs: [git, WinHv]
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1', 'v3.1.1']
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: winhv
+      uses: actions/download-artifact@v2
+      with:
+        name: WinHv-headers
+        path: winhv
+    - name: w64-qemu.image
+      run: |
+        set -x
+        image=$(make w64-qemu.image_print)
+        IMAGE_ID=ghcr.io/$GITHUB_REPOSITORY/$image
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        old_id=''
+        if docker pull $IMAGE_ID; then
+          old_id=$(docker image inspect $IMAGE_ID --format "{{.ID}}")
+        fi
+        make w64-qemu.image DOCKER_BUILD_OPTS="--cache-from=$IMAGE_ID"
+        new_id=$(docker image inspect $image --format "{{.ID}}")
+        if [ "$old_id" != "$new_id" ]; then
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag $image $IMAGE_ID:latest
+          docker push $IMAGE_ID:latest || true
+          rm -rf ~/.docker
+        fi
+    - name: ccache
+      uses: actions/cache@v2
+      id: qemu_ccache
+      with:
+        path: .ccache
+        key: w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+        restore-keys: |
+            w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+            w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}
+    - name: ccache.init
+      if: steps.qemu_ccache.outputs.cache-hit != 'true'
+      run: make w64-qemu.ccache-init
+    - name: repo
+      id: repo
+      uses: actions/cache@v2
+      with:
+        path: qemu.git
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('repo.sh') }}
+    - if: steps.repo.outputs.cache-hit != 'true'
+      run: ./repo.sh init ${{ matrix.version }}
+    - run: ./repo.sh update ${{ matrix.version }}
+    - name: qemu-build
+      run: make w64-qemu.ccache
+    - name: w64-qemu
+      if: true
+      uses: actions/upload-artifact@v2
+      with:
+        name: w64-qemu-${{ matrix.version }}
+        path: qemu/bin/ndebug/w64-qemu/.release
+
+  alpine-image:
+    runs-on: ubuntu-latest
+    env:
+      ALPINE_VERSION: '3.14'
+      REPO: 'TheCBaH/docker_kvm'
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: ${{ env.REPO }}
+        submodules: true
+    - name: build-image
+      run: |
+        set -x
+        image=$(make image.print)
+        IMAGE_ID=ghcr.io/$REPO/$image
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        docker pull $IMAGE_ID || true
+        make DOCKER_BUILD_OPTS="--cache-from=$IMAGE_ID" kvm_image
+        make kvm_run CMD='./kvm.sh prepare'
+        make alpine-make-vm-image.image
+        sudo modprobe nbd max_part=0
+        git -C alpine-make-vm-image apply <alpine/alpine_sync.patch
+        make alpine-make-vm-image.image_run
+        make kvm_run CMD='./compact-qcow.sh data/img/alpine-${ALPINE_VERSION}-boot.img'
+        make alpine-${ALPINE_VERSION}.test.boot
+        make kvm_run CMD='alpine/copy-kernel.sh ${ALPINE_VERSION}'
+        cat >data/img/qemu.conf <<_EOF_
+        # qemu config file
+        [machine]
+          graphics = "off"
+          kernel = "alpine-${ALPINE_VERSION}-vmlinuz-virt"
+          initrd = "alpine-${ALPINE_VERSION}-initramfs-virt"
+          append = "root=/dev/vda console=ttyS0 modules=ext4"
+        _EOF_
+        cat >data/img/qemu.bat <<_EOF_
+        qemu-system-x86_64.exe -readconfig qemu.conf -m 1G -smp 1 --accel tcg^
+         -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::9022-:22^
+         -drive if=virtio,format=qcow2,file=alpine-${ALPINE_VERSION}-boot.img^
+         -no-reboot -nographic -vga none -display none^
+         --snapshot
+        _EOF_
+        cat >data/img/qemu.sh <<_EOF_
+        set -x
+        exec ./qemu-system-x86_64 -readconfig qemu.conf -m 1G -smp 1 --accel tcg\\
+         -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::9022-:22\\
+         -drive if=virtio,format=qcow2,file=alpine-${ALPINE_VERSION}-boot.img\\
+         -no-reboot -nographic -vga none -display none\\
+         --snapshot
+        _EOF_
+        cat >data/img/qemu.rsp <<_EOF_
+        set -x
+        test -z "\${1:-}" && sleep 90
+        echo ${USER};sleep 1
+        echo ${USER};sleep 1
+        echo id; sleep 1;
+        echo sudo reboot
+        _EOF_
+    - uses: actions/upload-artifact@v2
+      with:
+        name: alpine.image
+        path: data/img
+
+  test-w64-qemu:
+    runs-on: windows-latest
+    needs: [w64-build, alpine-image]
+    strategy:
+      fail-fast: false
+      matrix:
+        qemu_version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1', 'v3.1.1']
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: alpine.image
+        path: ${{ runner.temp }}/qemu
+    - uses: actions/download-artifact@v2
+      with:
+        name: w64-qemu-${{ matrix.qemu_version }}
+        path: ${{ runner.temp }}/qemu
+    - name: boot-alpine
+      working-directory: ${{ runner.temp }}/qemu
+      timeout-minutes: 5
+      run: bash ./qemu.rsp | ./qemu.bat
+      shell: bash
+
+  linux-build:
+    runs-on: ubuntu-latest
+    needs: git
+    strategy:
+      fail-fast: false
+      matrix:
+        version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1', 'v3.1.1']
+    steps:
+    - name: checkout
+      uses: actions/checkout@v2
+    - name: static.image
+      run: |
+        set -x
+        image=$(make static.image_print)
+        IMAGE_ID=ghcr.io/$GITHUB_REPOSITORY/$image
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        old_id=''
+        if docker pull $IMAGE_ID; then
+          old_id=$(docker image inspect $IMAGE_ID --format "{{.ID}}")
+        fi
+        make static.image DOCKER_BUILD_OPTS="--cache-from=$IMAGE_ID"
+        new_id=$(docker image inspect $image --format "{{.ID}}")
+        if [ "$old_id" != "$new_id" ]; then
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker tag $image $IMAGE_ID:latest
+          docker push $IMAGE_ID:latest || true
+          rm -rf ~/.docker
+        fi
+    - name: ccache
+      uses: actions/cache@v2
+      id: qemu_ccache
+      with:
+        path: .ccache
+        key: static-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+        restore-keys: |
+            static-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+            static-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}
+    - name: ccache.init
+      if: steps.qemu_ccache.outputs.cache-hit != 'true'
+      run: make static.ccache-init
+    - name: repo
+      id: repo
+      uses: actions/cache@v2
+      with:
+        path: qemu.git
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('repo.sh') }}
+    - if: steps.repo.outputs.cache-hit != 'true'
+      run: ./repo.sh init ${{ matrix.version }}
+    - run: ./repo.sh update ${{ matrix.version }}
+    - name: qemu-build
+      run: make static.ccache
+    - name: qemu-tar
+      run: tar -ck -C qemu/bin/ndebug/static/.release . >static-qemu-${{ matrix.version }}.tar
+    - name: static-qemu
+      if: true
+      uses: actions/upload-artifact@v2
+      with:
+        name: static-qemu-${{ matrix.version }}
+        path: static-qemu-${{ matrix.version }}.tar
+
+  test-static-qemu:
+    runs-on: ubuntu-latest
+    needs: [linux-build, alpine-image]
+    strategy:
+      fail-fast: false
+      matrix:
+        qemu_version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1', 'v3.1.1']
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: alpine.image
+        path: ${{ runner.temp }}/qemu
+    - uses: actions/download-artifact@v2
+      with:
+        name: static-qemu-${{ matrix.qemu_version }}
+        path: ${{ runner.temp }}/qemu
+    - run: tar -xvf static-qemu-${{ matrix.qemu_version }}.tar
+      working-directory: ${{ runner.temp }}/qemu
+    - name: scripts
+      working-directory: ${{ runner.temp }}/qemu
+      run: |
+        cat >do_qemu.sh <<'_EOF_'
+        #!/bin/sh
+        set -x
+        flag=/tmp/flag.$$
+        (sleep 10
+         for s in $(seq 12); do
+            if grep -q 'login:' $flag; then
+              break
+            fi
+            sleep 10
+         done
+         sleep 1
+         exec sh qemu.rsp nodelay
+        ) | sh qemu.sh | tee $flag
+        rm -f $flag
+        _EOF_
+        cat >do_docker.sh <<'_EOF_'
+        #!/bin/sh
+        set -x
+        exec docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):$(pwd):ro -w $(pwd) $1 ./do_qemu.sh
+        _EOF_
+        chmod +x do_docker.sh do_qemu.sh
+    - name: qemu-ubuntu
+      working-directory: ${{ runner.temp }}/qemu
+      timeout-minutes: 5
+      run: ./do_qemu.sh
+    - name: qemu-docker-ubuntu
+      working-directory: ${{ runner.temp }}/qemu
+      run: ./do_docker.sh ubuntu
+    - name: qemu-docker-alpine
+      working-directory: ${{ runner.temp }}/qemu
+      run: ./do_docker.sh alpine
+    - name: qemu-docker-centos-6
+      working-directory: ${{ runner.temp }}/qemu
+      run: ./do_docker.sh centos:6
+    - name: qemu-docker-centos-7
+      working-directory: ${{ runner.temp }}/qemu
+      run: ./do_docker.sh centos:7
