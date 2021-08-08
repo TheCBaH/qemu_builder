@@ -13,6 +13,7 @@ configure=$qemu_root/configure
 
 do_w64_qemu_config() {
     cc='x86_64-w64-mingw32-gcc'
+    flags="$flags --cross-prefix=x86_64-w64-mingw32-"
     winhv=$qemu_root/../winhv
     if test -f $winhv/WinHvPlatform.h && $configure --help | grep -q 'whpx'; then
         flags="$flags --enable-whpx"
@@ -34,14 +35,14 @@ case $target in
         ;;
 esac
 
-../../../configure --cc="ccache $cc $cflags" --cross-prefix=x86_64-w64-mingw32-\
+../../../configure --cc="ccache $cc $cflags"\
+ --disable-capstone\
  --disable-debug-info\
+ --disable-gtk\
  --disable-guest-agent-msi\
+ --disable-guest-agent\
  --disable-werror\
  --target-list=x86_64-softmmu\
- --disable-capstone\
- --disable-guest-agent\
- --disable-gtk\
  $flags
 
 make $@
