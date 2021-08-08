@@ -237,3 +237,9 @@ jobs:
     - run: ./repo.sh update ${{ matrix.version }}
     - name: qemu-build
       run: make static.ccache
+    - name: static-qemu
+      if: true
+      uses: actions/upload-artifact@v2
+      with:
+        name: static-qemu-${{ matrix.version }}
+        path: qemu/bin/ndebug/static/.release
