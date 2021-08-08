@@ -4,12 +4,17 @@ set -eu
 # based on https://qemu.weilnetz.de/doc/BUILD.txt
 mkdir -p qemu/bin/ndebug/x86_64-w64-mingw32
 cd qemu/bin/ndebug/x86_64-w64-mingw32
+flags=''
+if ../../../configure --help | grep -q 'with-git-submodules'; them
+    flags="$flags --with-git-submodules=validate"
+fi
+
 ../../../configure --cc='ccache x86_64-w64-mingw32-gcc' --cross-prefix=x86_64-w64-mingw32- --disable-guest-agent-msi --disable-werror\
  --target-list=x86_64-softmmu\
  --disable-capstone\
  --disable-guest-agent\
  --disable-gtk\
- --with-git-submodules=validate
+ $flags
 
 make $@
 # --enable-whpx\
