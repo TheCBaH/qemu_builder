@@ -23,7 +23,7 @@ jobs:
       id: qemu_repo
       with:
         path: qemu.git
-        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('build_w64.sh') }}
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
     - if: steps.git_repo.outputs.cache-hit != 'true'
       run: ./repo.sh init
 
@@ -72,13 +72,14 @@ jobs:
       uses: actions/cache@v2
       with:
         path: qemu.git
-        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('build_w64.sh') }}
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('repo.sh') }}
     - if: steps.repo.outputs.cache-hit != 'true'
-      run: ./repo.sh init
+      run: ./repo.sh init ${{ matrix.version }}
     - run: ./repo.sh update ${{ matrix.version }}
     - name: qemu-build
       run: make w64-qemu.ccache
     - name: w64-qemu
+      if: false
       uses: actions/upload-artifact@v2
       with:
         name: w64-qemu-${{ matrix.version }}
