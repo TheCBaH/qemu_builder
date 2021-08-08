@@ -16,10 +16,10 @@ init)
     for b in master stable-5.0; do
         $_git remote set-branches --add origin $b
     done
-    $_git commit -m empty --allow-empty
-    $_git branch -M empty
     $_git config user.email "you@example.com"
     $_git config user.name "Your Name"
+    $_git commit -m empty --allow-empty
+    $_git branch -M empty
     $_git -c protocol.version=2 fetch --no-tags --depth 1 origin
     tree=$repo.git/.tree
     mkdir $tree
