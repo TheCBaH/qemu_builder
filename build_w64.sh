@@ -11,6 +11,7 @@ cc='cc'
 _exe=''
 cross=''
 env=''
+targets=''
 
 qemu_root=../../..
 configure=$qemu_root/configure
@@ -34,6 +35,12 @@ if grep -q python3 $configure; then
 else
     flags="$flags --python=$(which python2)"
 fi
+
+if grep -q enable-lto $configure; then
+    flags="$flags --enable-lto"
+    targets="qemu-img${_exe} qemu-system-x86_64${_exe}"
+fi
+
 case $target in
     w64-qemu)
         do_w64_qemu_config
@@ -41,7 +48,7 @@ case $target in
     static)
         flags="$flags --static"
         flags="$flags --enable-kvm"
-        flags="$flags --enable-lto"
+        flags="$flags --disable-stack-protector"
         ;;
 esac
 
@@ -51,12 +58,11 @@ env $env $configure --cc="ccache $cc $cflags"\
  --disable-gtk\
  --disable-guest-agent-msi\
  --disable-guest-agent\
- --disable-stack-protector\
  --disable-werror\
  --target-list=x86_64-softmmu\
  $flags
 
-make $@
+make $targets $@
 
 release_dir=.release
 rm -rf $release_dir
@@ -88,12 +94,11 @@ case $target in
         do_w64_qemu_release
         ;;
 esac
-
 mv qemu-img${_exe} $release_dir
-if [ -f x86_64-softmmu/qemu-system-x86_64${_exe} ]; then
-    mv x86_64-softmmu/qemu-system-x86_64${_exe} $release_dir
-else
+if [ -f qemu-system-x86_64${_exe} ]; then
     mv qemu-system-x86_64${_exe} $release_dir
+else
+    mv x86_64-softmmu/qemu-system-x86_64${_exe} $release_dir
 fi
 ${cross}strip $release_dir/qemu*
 cp -pv \
