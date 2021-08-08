@@ -37,7 +37,7 @@ jobs:
 
   w64-qemu-build:
     runs-on: ubuntu-latest
-    needs: git WinHv
+    needs: [git, WinHv]
     strategy:
       fail-fast: false
       matrix:
