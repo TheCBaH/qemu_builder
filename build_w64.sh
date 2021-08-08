@@ -10,6 +10,7 @@ cflags=''
 cc='cc'
 _exe=''
 cross=''
+env=''
 
 qemu_root=../../..
 configure=$qemu_root/configure
@@ -40,10 +41,13 @@ case $target in
     static)
         flags="$flags --static"
         flags="$flags --enable-kvm"
+        cc="clang"
+        flags="$flags --enable-lto --disable-pie"
+        env="AR=llvm-ar"
         ;;
 esac
 
-$configure --cc="ccache $cc $cflags"\
+env $env $configure --cc="ccache $cc $cflags"\
  --disable-capstone\
  --disable-debug-info\
  --disable-gtk\

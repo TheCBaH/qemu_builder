@@ -4,13 +4,14 @@ RUN set -eux;\
     apk --no-cache add\
  bash\
  ccache\
+ clang\
  gcc\
  glib-dev\
  glib-static\
  libc-dev\
  linux-headers\
+ llvm\
  make\
- patch\
  perl\
  pixman-dev\
  pixman-static\
@@ -18,8 +19,11 @@ RUN set -eux;\
  python2\
  python3\
  samurai\
- xz\
  zlib-dev\
  zlib-static\
  ;\
     echo DONE
+RUN set -eux;\
+   cd /usr/lib;\
+   ln -s llvm11/lib/LLVMgold.so;\
+   echo DONE
