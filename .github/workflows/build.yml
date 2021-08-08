@@ -70,6 +70,7 @@ jobs:
       if: steps.qemu_ccache.outputs.cache-hit != 'true'
       run: make w64-qemu.ccache-init
     - name: repo
+    - id: repo
       uses: actions/cache@v2
       with:
         path: qemu.git
@@ -77,13 +78,13 @@ jobs:
         restore-keys: |
           qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
           qemu.git-${{ secrets.CACHE_ID }}
-    - if: steps.wsl2_repo.outputs.cache-hit != 'true'
+    - if: steps.repo.outputs.cache-hit != 'true'
       run: ./repo.sh init
-    - run: ./repo.sh update ${{ matrix.version}}
+    - run: ./repo.sh update ${{ matrix.version }}
     - name: qemu-build
       run: make w64-qemu.ccache
     - name: w64-qemu
       uses: actions/upload-artifact@v2
       with:
-        name: w64-qemu-${{ matrix.tag }}
+        name: w64-qemu-${{ matrix.version }}
         path: qemu/bin/ndebug/x86_64-w64-mingw32/.release
