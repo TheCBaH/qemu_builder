@@ -148,7 +148,7 @@ jobs:
          --snapshot
         _EOF_
         cat >data/img/qemu.rsp <<_EOF_
-        sleep 60
+        sleep 90
         echo ${USER};sleep 1
         echo ${USER};sleep 1
         echo id; sleep 1;
