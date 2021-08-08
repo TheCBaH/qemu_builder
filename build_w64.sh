@@ -41,9 +41,7 @@ case $target in
     static)
         flags="$flags --static"
         flags="$flags --enable-kvm"
-        cc="clang"
-        flags="$flags --enable-lto --disable-pie"
-        env="AR=llvm-ar"
+        flags="$flags --enable-lto"
         ;;
 esac
 
@@ -53,6 +51,7 @@ env $env $configure --cc="ccache $cc $cflags"\
  --disable-gtk\
  --disable-guest-agent-msi\
  --disable-guest-agent\
+ --disable-stack-protector\
  --disable-werror\
  --target-list=x86_64-softmmu\
  $flags
