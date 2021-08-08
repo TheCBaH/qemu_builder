@@ -8,6 +8,9 @@ cd qemu/bin/ndebug/$target
 flags=''
 cflags=''
 cc='cc'
+_exe=''
+cross=''
+
 qemu_root=../../..
 configure=$qemu_root/configure
 
@@ -40,7 +43,7 @@ case $target in
         ;;
 esac
 
-../../../configure --cc="ccache $cc $cflags"\
+echo $configure --cc="ccache $cc $cflags"\
  --disable-capstone\
  --disable-debug-info\
  --disable-gtk\
@@ -58,12 +61,6 @@ mkdir -p $release_dir
 
 do_w64_qemu_release() {
     _exe='.exe'
-    cp -pv \
-    pc-bios/bios-256k.bin\
-    pc-bios/efi-virtio.rom\
-    pc-bios/kvmvapic.bin\
-    pc-bios/linuxboot_dma.bin\
-    $release_dir
 
     cp -pv \
     /usr/x86_64-w64-mingw32/sys-root/mingw/bin/iconv.dll\
@@ -87,15 +84,18 @@ case $target in
     w64-qemu)
         do_w64_qemu_release
         ;;
-    static)
-        _exe=''
-        ;;
 esac
 
 mv qemu-img${_exe} $release_dir
 if [ -f x86_64-softmmu/qemu-system-x86_64${_exe} ]; then
     mv x86_64-softmmu/qemu-system-x86_64${_exe} $release_dir
 else
-    mv qemu-system-x86_64${_exec} $release_dir
+    mv qemu-system-x86_64${_exe} $release_dir
 fi
-{$cross}strip $release_dir/qemu*
+${cross}strip $release_dir/qemu*
+cp -pv \
+ pc-bios/bios-256k.bin\
+ pc-bios/efi-virtio.rom\
+ pc-bios/kvmvapic.bin\
+ pc-bios/linuxboot_dma.bin\
+ $release_dir
