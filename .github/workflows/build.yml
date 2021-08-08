@@ -127,5 +127,22 @@ jobs:
         make kvm_run CMD='alpine/copy-kernel.sh ${ALPINE_VERSION}'
     - uses: actions/upload-artifact@v2
       with:
-        name: alpine.images
+        name: alpine.image
         path: data/img
+
+jobs:
+  Test-w64-qemu:
+    runs-on: windows-latest
+    needs: [w64-qemu-build, alpine-image]
+    env:
+      QEMU_VERSION: 'v6.0.0'
+    steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: alpine.image
+        path: ${{ runner.temp }}/qemu
+    - uses: actions/download-artifact@v2
+      with:
+        name: w64-qemu-${{ env.QEMU_VERSION }}
+        path: ${{ runner.temp }}/qemu
+    - run: ls ${{ runner.temp }}/qemu
