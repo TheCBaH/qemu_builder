@@ -37,7 +37,7 @@ jobs:
 
   w64-qemu-build:
     runs-on: ubuntu-latest
-    needs: git
+    needs: git WinHv
     strategy:
       fail-fast: false
       matrix:
@@ -45,6 +45,11 @@ jobs:
     steps:
     - name: checkout
       uses: actions/checkout@v2
+    - name: winhv
+      uses: actions/download-artifact@v2
+      with:
+        name: WinHv-headers
+        path: winhv
     - name: w64-qemu.image
       run: |
         set -x

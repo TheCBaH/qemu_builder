@@ -5,17 +5,24 @@ set -eu
 mkdir -p qemu/bin/ndebug/x86_64-w64-mingw32
 cd qemu/bin/ndebug/x86_64-w64-mingw32
 flags=''
-configure=../../../configure
+cflags=''
+qemu_root=../../..
+configure=$qemu_root/configure
 if $configure --help | grep -q 'with-git-submodules'; then
     flags="$flags --with-git-submodules=validate"
 fi
-if grep -q $configure python3; then
+winhv=$qemu_root/../winhv
+if test -f $winhv/WinHvPlatform.h && $configure --help | grep -q 'whpx'; then
+    flags="$flags --enable-whpx"
+    cflags="-I$(readlink -f $winhv)"
+fi
+if grep -q python3 $configure; then
     true
 else
     flags="$flags --python=$(which python2)"
 fi
 
-../../../configure --cc='ccache x86_64-w64-mingw32-gcc' --cross-prefix=x86_64-w64-mingw32- --disable-guest-agent-msi --disable-werror\
+../../../configure --cc="ccache x86_64-w64-mingw32-gcc $cflags" --cross-prefix=x86_64-w64-mingw32- --disable-guest-agent-msi --disable-werror\
  --target-list=x86_64-softmmu\
  --disable-capstone\
  --disable-guest-agent\
