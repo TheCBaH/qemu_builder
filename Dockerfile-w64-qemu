@@ -1,0 +1,64 @@
+ARG OS_VER=testing-slim
+FROM debian:${OS_VER}
+RUN set -eux;\
+    apt-get update;\
+    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
+ ca-certificates\
+ curl\
+ gnupg\
+ ;\
+    apt-get clean; rm -rf /var/lib/apt/lists/*;\
+    echo DONE
+RUN set -eux;\
+    apt-get update;\
+    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
+ build-essential\
+ ccache\
+ g++-mingw-w64\
+ gcc\
+ libc6-dev\
+ make\
+ mingw-w64-tools\
+ mingw-w64-x86-64-dev\
+ mingw-w64\
+ nsis\
+ python3\
+;\
+    apt-get clean; rm -rf /var/lib/apt/lists/*;\
+    echo DONE
+RUN set -eux;\
+    curl --show-error --silent https://qemu.weilnetz.de/debian/weilnetz.gpg >/etc/apt/trusted.gpg.d/weilnetz.gpg;\
+    echo 'deb https://qemu.weilnetz.de/debian/ testing contrib' >/etc/apt/sources.list.d/cygwin.list;\
+    apt-get update;\
+    apt-get install -y --no-install-recommends\
+ mingw64-x86-64-glib2.0\
+ mingw64-x86-64-pixman\
+;\
+    echo DONE
+RUN set -eux;\
+    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
+ ninja-build\
+ dpkg-dev\
+ ;\
+    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
+ mingw64-x86-64-curl\
+ mingw64-x86-64-gnutls\
+ mingw64-x86-64-gtk3\
+ mingw64-x86-64-libxml2\
+ mingw64-x86-64-ncurses\
+ mingw64-x86-64-sdl2\
+ mingw64-x86-64-libusb1.0\
+ mingw64-x86-64-usbredir\
+ ;\
+    echo DONE
+RUN set -eux;\
+    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
+ libglib2.0-dev\
+ mingw-w64-tools\
+ ;\
+    echo DONE
+RUN set -eux;\
+    env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
+ dpkg-dev\
+ ;\
+    echo DONE
