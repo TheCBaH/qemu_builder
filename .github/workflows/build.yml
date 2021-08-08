@@ -123,8 +123,6 @@ jobs:
         make kvm_run CMD='./compact-qcow.sh data/img/alpine-$ALPINE_VERSION-boot.img'
         make alpine-$ALPINE_VERSION.test.boot
     - uses: actions/upload-artifact@v2
-        with:
-        name: alpine.images
-            path: data/img
-
-
+      with:
+      name: alpine.images
+        path: data/img
