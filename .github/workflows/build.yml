@@ -12,7 +12,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - run: Get-ChildItem "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots"
-    - run: |
+    - name: WinHV-headers
+      run: |
         ls "c:/Program Files (x86)/Windows Kits/10/Include"
         mkdir ${{ runner.temp }}.release
         cp "c:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/WinHv*" ${{ runner.temp }}.release
@@ -92,8 +93,38 @@ jobs:
     - name: qemu-build
       run: make w64-qemu.ccache
     - name: w64-qemu
-      if: false
+      if: true
       uses: actions/upload-artifact@v2
       with:
         name: w64-qemu-${{ matrix.version }}
         path: qemu/bin/ndebug/x86_64-w64-mingw32/.release
+
+  alpine-image:
+    runs-on: ubuntu-latest
+    env:
+      ALPINE_VERSION: '3.14'
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        repository: 'https://github.com/TheCBaH/docker_kvm.git'
+        submodules: true
+    - name: build-image
+      run: |
+        set -x
+        image=$(make image.print)
+        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/docker_kvm/$image
+        IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        make DOCKER_BUILD_OPTS="--cache-from=$IMAGE_ID" kvm_image
+        make kvm_run CMD='./kvm.sh prepare'
+        make alpine-make-vm-image.image
+        sudo modprobe nbd max_part=0
+        git -C alpine-make-vm-image apply <alpine/alpine_sync.patch
+        make alpine-make-vm-image.image_run
+        make kvm_run CMD='./compact-qcow.sh data/img/alpine-$ALPINE_VERSION-boot.img'
+        make alpine-$ALPINE_VERSION.test.boot
+    - uses: actions/upload-artifact@v2
+        with:
+        name: alpine.images
+            path: data/img
+
+
