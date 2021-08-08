@@ -17,22 +17,27 @@ init)
     for b in master stable-5.0 stable-4.0 stable-3.0; do
         $_git remote set-branches --add origin $b
     done
-    $_git config user.email "you@example.com"
-    $_git config user.name "Your Name"
-    $_git commit -m empty --allow-empty
-    $_git branch -M empty
+    if $_git rev-parse empty; then
+        true
+    else
+        $_git config user.email "you@example.com"
+        $_git config user.name "Your Name"
+        $_git commit -m empty --allow-empty
+        $_git branch -M empty
+    fi
     $_git -c protocol.version=2 fetch --no-tags --depth 1 origin
     if [ $ref != master ]; then
         $_git -c protocol.version=2 fetch --no-tags --depth 1 origin $ref
         $_git update-ref refs/remotes/origin/$ref FETCH_HEAD~0
     fi
     tree=$repo.git/.tree
-    mkdir $tree
+    rm -rf $tree;mkdir $tree
     git_dir=$(readlink -f $repo.git/.git)
     (
         cd $tree
-        git --git-dir $git_dir --work-tree . checkout origin/$ref
-        git --git-dir $git_dir --work-tree . submodule update --jobs 2 --depth 1 --init $modules || true
+        git --git-dir $git_dir --work-tree . checkout origin/master
+        git --git-dir $git_dir --work-tree . submodule sync
+        git --git-dir $git_dir --work-tree . submodule update --jobs 2 --depth 1 --init $modules meson
         git --git-dir $git_dir --work-tree . checkout empty
     )
     rm -rf $tree
