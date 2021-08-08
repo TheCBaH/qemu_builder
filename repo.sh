@@ -45,7 +45,7 @@ update)
     $_git -c protocol.version=2 fetch --no-tags --depth 1 origin $ref
     $_git reset --merge FETCH_HEAD
     if $_git submodule | grep meson; then
-        modules="$module meson"
+        modules="$modules meson"
     fi
 	$_git -c protocol.version=2 submodule update --jobs 2 --depth 1 --init $modules
 	(cd qemu ; scripts/git-submodule.sh update $modules)
