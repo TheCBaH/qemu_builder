@@ -18,6 +18,8 @@ init)
     done
     $_git commit -m empty --allow-empty
     $_git branch -M empty
+    $_git config user.email "you@example.com"
+    $_git config user.name "Your Name"
     $_git -c protocol.version=2 fetch --no-tags --depth 1 origin
     tree=$repo.git/.tree
     mkdir $tree
