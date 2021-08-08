@@ -182,7 +182,7 @@ jobs:
         set -x
         cd qemu
         ls
-        (sleep 10;cat qemu.rsp)|./qemu.bat
+        (sleep 60;cat qemu.rsp)|./qemu.bat
       shell: bash
 
   linux-build:
