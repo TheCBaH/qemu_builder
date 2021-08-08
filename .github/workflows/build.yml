@@ -107,7 +107,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        repository: env.REPO
+        repository: ${{ env.REPO }}
         submodules: true
     - name: build-image
       run: |
