@@ -258,6 +258,6 @@ jobs:
     - name: qemu-ubuntu
       working-directory: ${{ runner.temp }}/qemu
       timeout-minutes: 5
-      run:
+      run: |
         tar -xvf static-qemu-${{ env.QEMU_VERSION }}.tar
         sh ./qemu.rsp | sh ./qemu.sh
