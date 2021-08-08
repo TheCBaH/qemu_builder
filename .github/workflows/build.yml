@@ -62,10 +62,10 @@ jobs:
       id: qemu_ccache
       with:
         path: .ccache
-        key: w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.tag}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+        key: w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
         restore-keys: |
-            w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.tag}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
-            w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.tag}}
+            w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+            w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}
     - name: ccache.init
       if: steps.qemu_ccache.outputs.cache-hit != 'true'
       run: make w64-qemu.ccache-init
@@ -79,6 +79,6 @@ jobs:
           qemu.git-${{ secrets.CACHE_ID }}
     - if: steps.wsl2_repo.outputs.cache-hit != 'true'
       run: ./repo.sh init
-    - run: ./repo.sh update ${{ matrix.tag}}
+    - run: ./repo.sh update ${{ matrix.version}}
     - name: qemu-build
       run: make w64-qemu.image_run
