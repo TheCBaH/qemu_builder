@@ -130,7 +130,6 @@ jobs:
         name: alpine.image
         path: data/img
 
-jobs:
   Test-w64-qemu:
     runs-on: windows-latest
     needs: [w64-qemu-build, alpine-image]
