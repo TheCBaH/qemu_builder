@@ -21,6 +21,10 @@ jobs:
       with:
         name: WinHv-headers
         path: ${{ runner.temp }}.release
+    - run: |
+        set -x
+        (echo 1;sleep 1;echo 2;sleep 2;echo 3)|(echo A;sleep 2;echo B;sleep 1;echo C)
+      shell: bash
 
   git:
     runs-on: ubuntu-latest
@@ -159,7 +163,8 @@ jobs:
         name: w64-qemu-${{ env.QEMU_VERSION }}
         path: ${{ runner.temp }}/qemu
     - name: boot-alpine
+      timeout-minutes: 5
       run: |
-        ls ${{ runner.temp }}/qemu
         cd ${{ runner.temp }}/qemu
-        qemu.bat
+        ls
+        ./qemu.bat
