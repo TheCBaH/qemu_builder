@@ -21,10 +21,6 @@ jobs:
       with:
         name: WinHv-headers
         path: ${{ runner.temp }}.release
-    - run: |
-        set -x
-        (echo 1;sleep 1;echo 2;sleep 2;echo 3)|(echo A;sleep 2;echo B;sleep 1;echo C)
-      shell: bash
 
   git:
     runs-on: ubuntu-latest
@@ -143,6 +139,17 @@ jobs:
          -drive if=virtio,format=qcow2,file=alpine-${ALPINE_VERSION}-boot.img^
          -no-reboot -nographic -vga none -display none --snapshot
         _EOF_
+        cat >data/img/qemu.rsp <<_EOF_
+
+
+
+
+
+        ${USER}
+        ${USER}
+        id
+        sudo reboot
+        _EOF_
     - uses: actions/upload-artifact@v2
       with:
         name: alpine.image
@@ -163,8 +170,15 @@ jobs:
         name: w64-qemu-${{ env.QEMU_VERSION }}
         path: ${{ runner.temp }}/qemu
     - name: boot-alpine
+      if: false
       timeout-minutes: 5
       run: |
         cd ${{ runner.temp }}/qemu
         ls
         ./qemu.bat
+    - run: |
+        cd ${{ runner.temp }}/qemu
+        ls
+        (sleep 10;cat qemu.rsp))|./qemu.bat
+      shell: bash
+
