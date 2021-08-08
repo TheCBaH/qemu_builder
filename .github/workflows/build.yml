@@ -103,16 +103,17 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ALPINE_VERSION: '3.14'
+      REPO: 'TheCBaH/docker_kvm.git'
     steps:
     - uses: actions/checkout@v2
       with:
-        repository: 'https://github.com/TheCBaH/docker_kvm.git'
+        repository: env.REPO
         submodules: true
     - name: build-image
       run: |
         set -x
         image=$(make image.print)
-        IMAGE_ID=ghcr.io/${{ github.repository_owner }}/docker_kvm/$image
+        IMAGE_ID=ghcr.io/$REPO/$image
         IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
         make DOCKER_BUILD_OPTS="--cache-from=$IMAGE_ID" kvm_image
         make kvm_run CMD='./kvm.sh prepare'
