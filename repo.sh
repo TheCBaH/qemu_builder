@@ -4,7 +4,7 @@ set -eu
 cmd=$1;shift
 
 repo=qemu
-modules="ui/keycodemapdb tests/fp/berkeley-testfloat-3 tests/fp/berkeley-softfloat-3 meson dtc capstone slirp"
+modules="ui/keycodemapdb tests/fp/berkeley-testfloat-3 tests/fp/berkeley-softfloat-3 dtc capstone slirp"
 _git="git -C $repo.git"
 case "$cmd" in
 init)
@@ -27,7 +27,7 @@ init)
     (
         cd $tree
         git --git-dir $git_dir --work-tree . checkout origin/master
-        git --git-dir $git_dir --work-tree . submodule update --jobs 2 --depth 1 --init $modules
+        git --git-dir $git_dir --work-tree . submodule update --jobs 2 --depth 1 --init $modules meson
         git --git-dir $git_dir --work-tree . checkout empty
     )
     rm -rf $tree
@@ -44,6 +44,9 @@ update)
     fi
     $_git -c protocol.version=2 fetch --no-tags --depth 1 origin $ref
     $_git reset --merge FETCH_HEAD
+    if $_git submodule |grep meson ; then
+        modules="$module meson"
+    fi
 	$_git -c protocol.version=2 submodule update --jobs 2 --depth 1 --init $modules
 	(cd qemu ; scripts/git-submodule.sh update $modules)
     ;;
