@@ -115,6 +115,7 @@ jobs:
         image=$(make image.print)
         IMAGE_ID=ghcr.io/$REPO/$image
         IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+        docker pull $IMAGE_ID || true
         make DOCKER_BUILD_OPTS="--cache-from=$IMAGE_ID" kvm_image
         make kvm_run CMD='./kvm.sh prepare'
         make alpine-make-vm-image.image
@@ -123,6 +124,7 @@ jobs:
         make alpine-make-vm-image.image_run
         make kvm_run CMD='./compact-qcow.sh data/img/alpine-${ALPINE_VERSION}-boot.img'
         make alpine-${ALPINE_VERSION}.test.boot
+        make kvm_run CMD='alpine/copy-kernel.sh ${ALPINE_VERSION}'
     - uses: actions/upload-artifact@v2
       with:
         name: alpine.images
