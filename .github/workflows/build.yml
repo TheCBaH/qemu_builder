@@ -8,6 +8,11 @@ on:
   workflow_dispatch:
 
 jobs:
+  WinHv:
+    runs-on: windows-latest
+    steps:
+    - run: Get-ChildItem "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots"
+    - run: ls "c:/Program Files (x86)/Windows Kits/10/Include"
   git:
     runs-on: ubuntu-latest
     steps:
