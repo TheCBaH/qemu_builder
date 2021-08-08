@@ -12,8 +12,9 @@ qemu_root=../../..
 configure=$qemu_root/configure
 
 do_w64_qemu_config() {
-    cc='x86_64-w64-mingw32-gcc'
-    flags="$flags --cross-prefix=$cc-"
+    cross='x86_64-w64-mingw32-'
+    cc="$cross-gcc"
+    flags="$flags --cross-prefix=$crosss"
     winhv=$qemu_root/../winhv
     if test -f $winhv/WinHvPlatform.h && $configure --help | grep -q 'whpx'; then
         flags="$flags --enable-whpx"
@@ -35,6 +36,7 @@ case $target in
         ;;
     static)
         flags="$flags --static"
+        flags="$flags --enable-kvm"
         ;;
 esac
 

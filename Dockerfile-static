@@ -5,7 +5,6 @@ RUN set -eux;\
  bash\
  ccache\
  gcc\
- git\
  glib-dev\
  glib-static\
  libc-dev\
@@ -13,6 +12,8 @@ RUN set -eux;\
  make\
  patch\
  perl\
+ pixman-dev\
+ pixman-static\
  pkgconf\
  python2\
  python3\
@@ -20,11 +21,5 @@ RUN set -eux;\
  xz\
  zlib-dev\
  zlib-static\
- ;\
-    echo DONE
-RUN set -eux;\
-    apk --no-cache add\
- pixman-dev\
- pixman-static\
  ;\
     echo DONE
