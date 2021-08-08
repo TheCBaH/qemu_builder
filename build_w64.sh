@@ -43,7 +43,7 @@ case $target in
         ;;
 esac
 
-echo $configure --cc="ccache $cc $cflags"\
+$configure --cc="ccache $cc $cflags"\
  --disable-capstone\
  --disable-debug-info\
  --disable-gtk\
