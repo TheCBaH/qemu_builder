@@ -8,11 +8,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  WinHv:
-    runs-on: windows-latest
-    steps:
-    - run: Get-ChildItem "HKLM:\SOFTWARE\Wow6432Node\Microsoft\Windows Kits\Installed Roots"
-    - run: ls "c:/Program Files (x86)/Windows Kits/10/Include"
   git:
     runs-on: ubuntu-latest
     steps:
@@ -23,7 +18,7 @@ jobs:
       id: qemu_repo
       with:
         path: qemu.git
-        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('build_w64.sh') }}
     - if: steps.git_repo.outputs.cache-hit != 'true'
       run: ./repo.sh init
 
@@ -72,15 +67,14 @@ jobs:
       uses: actions/cache@v2
       with:
         path: qemu.git
-        key: qemu.git-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('repo.sh') }}
+        key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('build_w64.sh') }}
     - if: steps.repo.outputs.cache-hit != 'true'
-      run: ./repo.sh init ${{ matrix.version }}
+      run: ./repo.sh init
     - run: ./repo.sh update ${{ matrix.version }}
     - name: qemu-build
       run: make w64-qemu.ccache
     - name: w64-qemu
       uses: actions/upload-artifact@v2
-    - if: false
       with:
         name: w64-qemu-${{ matrix.version }}
         path: qemu/bin/ndebug/x86_64-w64-mingw32/.release
