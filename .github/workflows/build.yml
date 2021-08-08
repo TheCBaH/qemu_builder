@@ -129,8 +129,8 @@ jobs:
         # qemu config file
         [machine]
           graphics = "off"
-          kernel = "vmlinuz-virt"
-          initrd = "initramfs-virt"
+          kernel = "alpine-${ALPINE_VERSION}-vmlinuz-virt"
+          initrd = "alpine-${ALPINE_VERSION}-initramfs-virt"
           append = "root=/dev/vda console=ttyS0 modules=ext4"
         _EOF_
         cat >data/img/qemu.bat <<_EOF_
