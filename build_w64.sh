@@ -51,7 +51,7 @@ fi
 if grep -q enable-lto $configure; then
     flags="$flags --enable-lto"
 fi
-targets="qemu-img${_exe} qemu-system-x86_64${_exe}"
+targets="qemu-img${_exe} x86_64-softmmu/qemu-system-x86_64${_exe}"
 
 env $env $configure --cc="ccache $cc $cflags"\
  --disable-capstone\
