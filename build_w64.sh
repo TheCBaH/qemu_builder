@@ -21,7 +21,12 @@ make $@
 release_dir=.release
 rm -rf $release_dir
 mkdir -p $release_dir
-mv qemu-img.exe qemu-system-x86_64.exe $release_dir
+mv qemu-img.exe $release_dir
+if [ -f x86_64-softmmu/qemu-system-x86_64.exe ]; then
+    mv x86_64-softmmu/qemu-system-x86_64.exe $release_dir
+else
+    mv qemu-system-x86_64.exe $release_dir
+fi
 x86_64-w64-mingw32-strip $release_dir/*.exe
 cp -pv \
  pc-bios/bios-256k.bin\
