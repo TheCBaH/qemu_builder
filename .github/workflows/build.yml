@@ -125,6 +125,20 @@ jobs:
         make kvm_run CMD='./compact-qcow.sh data/img/alpine-${ALPINE_VERSION}-boot.img'
         make alpine-${ALPINE_VERSION}.test.boot
         make kvm_run CMD='alpine/copy-kernel.sh ${ALPINE_VERSION}'
+        cat >data/img/qemu.conf <<_EOF_
+        # qemu config file
+        [machine]
+          graphics = "off"
+          kernel = "vmlinuz-virt"
+          initrd = "initramfs-virt"
+          append = "root=/dev/vda console=ttyS0 modules=ext4"
+        _EOF_
+        cat >data/img/qemu.bat <<_EOF_
+        qemu-system-x86_64.exe -readconfig qemu.conf --accel tcg^
+         -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::1022-:22^
+         -drive if=virtio,format=qcow2,file=alpine-3.10-boot.img^
+         -no-reboot -nographic -vga none -display none --snapshot
+        _EOF_
     - uses: actions/upload-artifact@v2
       with:
         name: alpine.image
