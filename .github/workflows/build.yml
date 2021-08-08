@@ -176,8 +176,11 @@ jobs:
         cd ${{ runner.temp }}/qemu
         ls
         ./qemu.bat
-    - run: |
-        cd ${{ runner.temp }}/qemu
+    - name: boot-alpine-basj
+      working-directory: ${{ runner.temp }}
+      run: |
+        set -x
+        cd qemu
         ls
         (sleep 10;cat qemu.rsp))|./qemu.bat
       shell: bash
