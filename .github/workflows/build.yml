@@ -148,7 +148,7 @@ jobs:
          --snapshot
         _EOF_
         cat >data/img/qemu.rsp <<_EOF_
-        sleep 90
+        test -z "\${1:-}" && sleep 90
         echo ${USER};sleep 1
         echo ${USER};sleep 1
         echo id; sleep 1;
@@ -257,19 +257,32 @@ jobs:
         path: ${{ runner.temp }}/qemu
     - run: tar -xvf static-qemu-${{ env.QEMU_VERSION }}.tar
       working-directory: ${{ runner.temp }}/qemu
-    - name: qemu-ubuntu
-      working-directory: ${{ runner.temp }}/qemu
-      timeout-minutes: 5
-      run: sh -x ./qemu.rsp | sh -x ./qemu.sh
-    - name: docker-script
+    - name: scripts
       working-directory: ${{ runner.temp }}/qemu
       run: |
+        cat >do_qemu.sh <<'_EOF_'
+        #!/bin/sh
+        set -x
+        flag=/tmp/flag.$$
+        (sleep 1
+         for s in $(seq 120); do
+          if grep -q 'login:' $flag; then
+            break
+          fi
+          exec sh qemu.rsp nodelay
+        ) | sh qemu.sh | tee $flag
+        rm -f $flag
+        _EOF_
         cat >do_docker.sh <<'_EOF_'
         #!/bin/sh
         set -x
-        exec docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):$(pwd):ro -w $(pwd) $1 sh -euxc 'sh -eux qemu.rsp|sh -x qemu.sh'
+        exec docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):$(pwd):ro -w $(pwd) $1 ./do_qemu.sh
         _EOF_
-        chmod +x do_docker.sh
+        chmod +x do_docker.sh do_qemu.sh
+    - name: qemu-ubuntu
+      working-directory: ${{ runner.temp }}/qemu
+      timeout-minutes: 5
+      run: ./do_qemu.sh
     - name: qemu-docker-ubuntu
       working-directory: ${{ runner.temp }}/qemu
       run: ./do_docker.sh ubuntu
