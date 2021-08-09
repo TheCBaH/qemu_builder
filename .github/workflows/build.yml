@@ -264,10 +264,9 @@ jobs:
     - name: docker-script
       working-directory: ${{ runner.temp }}/qemu
       run: |
-        cat >do_docker.sh <<_EOF_
+        cat >do_docker.sh <<'_EOF_'
         #!/bin/sh
         set -x
-        echo $@
         exec docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):$(pwd):ro -w $(pwd) $1 sh -euxc 'sh -eux qemu.rsp|sh -x qemu.sh'
         _EOF_
         chmod +x do_docker.sh
