@@ -94,6 +94,7 @@ case $target in
         do_w64_qemu_release
         ;;
 esac
+cp -p LICENSE $release_dir
 mv qemu-img${_exe} $release_dir
 if [ -f qemu-system-x86_64${_exe} ]; then
     mv qemu-system-x86_64${_exe} $release_dir
