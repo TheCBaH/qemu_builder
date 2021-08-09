@@ -141,6 +141,7 @@ jobs:
          --snapshot
         _EOF_
         cat >data/img/qemu.sh <<_EOF_
+        set -x
         exec ./qemu-system-x86_64 -readconfig qemu.conf -m 1G -smp 1 --accel tcg\\
          -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::9022-:22\\
          -drive if=virtio,format=qcow2,file=alpine-${ALPINE_VERSION}-boot.img\\
@@ -148,6 +149,7 @@ jobs:
          --snapshot
         _EOF_
         cat >data/img/qemu.rsp <<_EOF_
+        set -x
         test -z "\${1:-}" && sleep 90
         echo ${USER};sleep 1
         echo ${USER};sleep 1
@@ -269,6 +271,8 @@ jobs:
           if grep -q 'login:' $flag; then
             break
           fi
+          sleep 1
+          done
           exec sh qemu.rsp nodelay
         ) | sh qemu.sh | tee $flag
         rm -f $flag
