@@ -141,7 +141,7 @@ jobs:
          --snapshot
         _EOF_
         cat >data/img/qemu.sh <<_EOF_
-        ./qemu-system-x86_64 -readconfig qemu.conf -m 1G -smp 1 --accel tcg\\
+        exec ./qemu-system-x86_64 -readconfig qemu.conf -m 1G -smp 1 --accel tcg\\
          -device virtio-net-pci,netdev=net0 -netdev user,id=net0,hostfwd=tcp::9022-:22\\
          -drive if=virtio,format=qcow2,file=alpine-${ALPINE_VERSION}-boot.img\\
          -no-reboot -nographic -vga none -display none\\
@@ -255,9 +255,30 @@ jobs:
       with:
         name: static-qemu-${{ env.QEMU_VERSION }}
         path: ${{ runner.temp }}/qemu
+    - run: tar -xvf static-qemu-${{ env.QEMU_VERSION }}.tar
+      working-directory: ${{ runner.temp }}/qemu
     - name: qemu-ubuntu
       working-directory: ${{ runner.temp }}/qemu
       timeout-minutes: 5
+      run: sh -x ./qemu.rsp | sh -x ./qemu.sh
+    - name: docker-script
+      working-directory: ${{ runner.temp }}/qemu
       run: |
-        tar -xvf static-qemu-${{ env.QEMU_VERSION }}.tar
-        sh ./qemu.rsp | sh ./qemu.sh
+        cat >do_docker.sh <<_EOF_
+        #!/bin/sh
+        set -x
+        exec docker run -i --rm --user $(id -u):$(id -g) -v $(pwd):$(pwd):ro -w $(pwd) $1 sh -euxc 'sh -eux qemu.rsp|sh -x qemu.sh'
+        _EOF_
+        chmod +x do_docker.sh
+    - name: qemu-docker-ubuntu
+      working-directory: ${{ runner.temp }}/qemu
+      run: ./do_docker.sh ubuntu
+    - name: qemu-docker-alpine
+      working-directory: ${{ runner.temp }}/qemu
+      run: ./do_docker.sh alpine
+    - name: qemu-docker-centos-6
+      working-directory: ${{ runner.temp }}/qemu
+      run: ./do_docker.sh centos:6
+    - name: qemu-docker-centos-7
+      working-directory: ${{ runner.temp }}/qemu
+      run: ./do_docker.sh centos:7
