@@ -1,4 +1,4 @@
-name: wsl2_kernel
+name: qemu-builder
 
 on:
   push:
