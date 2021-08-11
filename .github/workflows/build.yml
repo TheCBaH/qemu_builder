@@ -74,9 +74,9 @@ jobs:
       id: qemu_ccache
       with:
         path: .ccache
-        key: w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+        key: w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_qemu.sh') }}
         restore-keys: |
-            w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+            w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_qemu.sh') }}
             w64-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}
     - name: ccache.init
       if: steps.qemu_ccache.outputs.cache-hit != 'true'
@@ -216,9 +216,9 @@ jobs:
       id: qemu_ccache
       with:
         path: .ccache
-        key: static-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+        key: static-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_qemu.sh') }}
         restore-keys: |
-            static-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_w64.sh') }}
+            static-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('Dockerfile*','Makefile','build_qemu.sh') }}
             static-qemu-ccache-${{ secrets.CACHE_ID }}-${{ matrix.version}}
     - name: ccache.init
       if: steps.qemu_ccache.outputs.cache-hit != 'true'
