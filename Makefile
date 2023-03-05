@@ -3,7 +3,7 @@ UID=$(shell expr $$(id -u) - ${ID_OFFSET})
 GID=$(shell expr $$(id -g) - ${ID_OFFSET})
 USER=$(shell id -un)
 GROUP=$(shell id -gn)
-WORKSPACE=${CURDIR}
+WORKSPACE=$(or ${LOCAL_WORKSPACE_FOLDER},${CURDIR})
 TERMINAL=$(shell test -t 0 && echo t)
 
 .SUFFIXES:
