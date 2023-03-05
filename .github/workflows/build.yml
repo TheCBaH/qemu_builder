@@ -34,7 +34,7 @@ jobs:
         path: qemu.git
         key: qemu.git-${{ secrets.CACHE_ID }}-${{ hashFiles('repo.sh') }}
     - if: steps.git_repo.outputs.cache-hit != 'true'
-      run: ./repo.sh init
+      run: ./repo.sh init stable-6.0
 
   w64-build:
     runs-on: ubuntu-latest

@@ -6,6 +6,12 @@ cmd=$1;shift
 repo=qemu
 modules="ui/keycodemapdb tests/fp/berkeley-testfloat-3 tests/fp/berkeley-softfloat-3 dtc capstone slirp"
 _git="git -C $repo.git"
+check_submodule () {
+    if $_git submodule | grep $1; then
+        modules="$modules $1"
+    fi
+}
+
 case "$cmd" in
 init)
     ref=${1:-master}
@@ -14,7 +20,7 @@ init)
         $_git init .
         $_git remote add origin -t master https://github.com/qemu/qemu.git
     fi
-    for b in master stable-5.0 stable-4.0 stable-3.0; do
+    for b in master stable-6.0 stable-5.0 stable-4.0 stable-3.0; do
         $_git remote set-branches --add origin $b
     done
     if $_git rev-parse empty; then
@@ -35,10 +41,12 @@ init)
     git_dir=$(readlink -f $repo.git/.git)
     (
         cd $tree
-        git --git-dir $git_dir --work-tree . checkout origin/master
-        git --git-dir $git_dir --work-tree . submodule sync
-        git --git-dir $git_dir --work-tree . submodule update --jobs 2 --depth 1 --init $modules meson
-        git --git-dir $git_dir --work-tree . checkout empty
+        _git="git --git-dir $git_dir --work-tree ." 
+        $_git checkout origin/$ref
+        $_git submodule sync
+        check_submodule meson
+        $_git submodule update --jobs 2 --depth 1 --init $modules
+        $_git checkout empty
     )
     rm -rf $tree
     ;;
@@ -54,9 +62,7 @@ update)
     $_git -c protocol.version=2 fetch --no-tags --depth 1 origin $ref
     $_git reset --hard FETCH_HEAD
     $_git clean -xdf
-    if $_git submodule | grep meson; then
-        modules="$modules meson"
-    fi
+    check_submodule meson
 	$_git -c protocol.version=2 submodule update --jobs 2 --depth 1 --init $modules
     $_git submodule foreach git clean -xdf
 	(cd qemu ; scripts/git-submodule.sh update $modules)
