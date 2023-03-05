@@ -26,7 +26,7 @@ init)
         $_git init .
         $_git remote add origin -t master https://github.com/qemu/qemu.git
     fi
-    for b in master stable-6.0 stable-5.0 stable-4.0 stable-3.0; do
+    for b in master stable-6.1 stable-6.0 stable-5.0 stable-4.0 stable-3.0; do
         $_git remote set-branches --add origin $b
     done
     if $_git rev-parse empty; then
@@ -47,7 +47,7 @@ init)
     git_dir=$(readlink -f $repo.git/.git)
     (
         cd $tree
-        _git="git --git-dir $git_dir --work-tree ." 
+        _git="git --git-dir $git_dir --work-tree ."
         $_git checkout origin/$ref
         $_git submodule sync
         check_submodules

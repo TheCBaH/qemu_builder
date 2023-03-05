@@ -32,13 +32,6 @@ jobs:
       id: matrix
       run: |
         echo "versions=$(.github/workflows/matrix.sh)" >> $GITHUB_OUTPUT
-    - name: test
-      run: |
-        echo '${{ steps.matrix.outputs.versions }}'
-    - name: test2
-      run:
-        echo '${{ fromJson(steps.matrix.outputs.versions) }}'
-        exit 1
 
   git:
     runs-on: ubuntu-latest
