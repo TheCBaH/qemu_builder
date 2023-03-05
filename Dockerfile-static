@@ -16,7 +16,6 @@ RUN set -eux;\
  pixman-dev\
  pixman-static\
  pkgconf\
- python2\
  python3\
  samurai\
  zlib-dev\

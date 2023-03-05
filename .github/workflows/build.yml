@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1', 'v3.1.1']
+        version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1']
     steps:
     - name: checkout
       uses: actions/checkout@v2
@@ -167,7 +167,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        qemu_version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1', 'v3.1.1']
+        qemu_version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1']
     steps:
     - uses: actions/download-artifact@v2
       with:
@@ -189,7 +189,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1', 'v3.1.1']
+        version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1']
     steps:
     - name: checkout
       uses: actions/checkout@v2
@@ -249,7 +249,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        qemu_version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1', 'v3.1.1']
+        qemu_version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1']
     steps:
     - uses: actions/download-artifact@v2
       with:
