@@ -17,7 +17,7 @@ jobs:
         ls "c:/Program Files (x86)/Windows Kits/10/Include"
         mkdir ${{ runner.temp }}.release
         cp "c:/Program Files (x86)/Windows Kits/10/Include/10.0.19041.0/um/WinHv*" ${{ runner.temp }}.release
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: WinHv-headers
         path: ${{ runner.temp }}.release
@@ -26,9 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: git-cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: qemu_repo
       with:
         path: qemu.git
@@ -45,9 +45,9 @@ jobs:
         version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1']
     steps:
     - name: checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: winhv
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: WinHv-headers
         path: winhv
@@ -70,7 +70,7 @@ jobs:
           rm -rf ~/.docker
         fi
     - name: ccache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: qemu_ccache
       with:
         path: .ccache
@@ -83,7 +83,7 @@ jobs:
       run: make w64-qemu.ccache-init
     - name: repo
       id: repo
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: qemu.git
         key: qemu.git-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('repo.sh') }}
@@ -94,7 +94,7 @@ jobs:
       run: make w64-qemu.ccache
     - name: w64-qemu
       if: true
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: w64-qemu-${{ matrix.version }}
         path: qemu/bin/ndebug/w64-qemu/.release
@@ -105,7 +105,7 @@ jobs:
       ALPINE_VERSION: '3.14'
       REPO: 'TheCBaH/docker_kvm'
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         repository: ${{ env.REPO }}
         submodules: true
@@ -156,7 +156,7 @@ jobs:
         echo id; sleep 1;
         echo sudo reboot
         _EOF_
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: alpine.image
         path: data/img
@@ -169,11 +169,11 @@ jobs:
       matrix:
         qemu_version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1']
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: alpine.image
         path: ${{ runner.temp }}/qemu
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: w64-qemu-${{ matrix.qemu_version }}
         path: ${{ runner.temp }}/qemu
@@ -192,7 +192,7 @@ jobs:
         version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1']
     steps:
     - name: checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
     - name: static.image
       run: |
         set -x
@@ -212,7 +212,7 @@ jobs:
           rm -rf ~/.docker
         fi
     - name: ccache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: qemu_ccache
       with:
         path: .ccache
@@ -225,7 +225,7 @@ jobs:
       run: make static.ccache-init
     - name: repo
       id: repo
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: qemu.git
         key: qemu.git-${{ secrets.CACHE_ID }}-${{ matrix.version}}-${{ hashFiles('repo.sh') }}
@@ -238,7 +238,7 @@ jobs:
       run: tar -ck -C qemu/bin/ndebug/static/.release . >static-qemu-${{ matrix.version }}.tar
     - name: static-qemu
       if: true
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: static-qemu-${{ matrix.version }}
         path: static-qemu-${{ matrix.version }}.tar
@@ -251,11 +251,11 @@ jobs:
       matrix:
         qemu_version: ['v6.0.0','v5.2.0', 'v5.0.1', 'v5.1.0', 'v4.2.1']
     steps:
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: alpine.image
         path: ${{ runner.temp }}/qemu
-    - uses: actions/download-artifact@v2
+    - uses: actions/download-artifact@v3
       with:
         name: static-qemu-${{ matrix.qemu_version }}
         path: ${{ runner.temp }}/qemu
