@@ -81,7 +81,7 @@ do_w64_qemu_release() {
     done
 
     for l in gcc_s_seh-1 ssp-0; do
-        cp -pv /usr/lib/gcc/x86_64-w64-mingw32/10-win32/lib${l}.dll $release_dir/
+        cp -pv /usr/lib/gcc/x86_64-w64-mingw32/*-win32/lib${l}.dll $release_dir/
     done
 
     for l in winpthread-1; do
