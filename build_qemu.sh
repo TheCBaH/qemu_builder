@@ -15,12 +15,24 @@ targets=''
 
 qemu_root=../../..
 configure=$qemu_root/configure
+local=$root/local.$target
+cpu_cores=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
+
+export PKG_CONFIG_PATH="$local/lib/pkgconfig"
 
 do_meson() {(
     cd $root/../$1
-    meson setup --prefix $root/local $static --cross-file ../cross_file_mingw_w64.txt _build
+    meson setup --prefix $local $static --cross-file ../cross_file_mingw_w64.txt _build
     meson compile -C _build
     meson install -C _build
+)}
+
+do_attr() {(
+    cd $root/../attr
+    ./autogen.sh
+    ./configure --disable-nls --prefix $local CC="ccache ${cc:-gcc}"
+    make -j$cpu_cores
+    make install
 )}
 
 do_w64_qemu_config() {
@@ -31,12 +43,11 @@ do_w64_qemu_config() {
     winhv=$qemu_root/../winhv
     if test -f $winhv/WinHvPlatform.h && $configure --help | grep -q 'whpx'; then
         flags="$flags --enable-whpx"
-        cflags="-I$(readlink -f $winhv)"
+        cflags="$cflags -I$(readlink -f $winhv)"
     fi
     export LIBS="-luuid -lole32"
-    export PKG_CONFIG_PATH=$root/local/lib/pkgconfig
     static='--default-library static'
-    meson_setup="--prefix $root/local $static --cross-file ../cross_file_mingw_w64.txt _build"
+    meson_setup="--prefix $local $static --cross-file ../cross_file_mingw_w64.txt _build"
     for lib in glib pixman libslirp; do
         do_meson $lib
     done
@@ -47,9 +58,12 @@ case $target in
         do_w64_qemu_config
         ;;
     static)
-        flags="$flags --static"
-        flags="$flags --enable-kvm"
+        do_attr
         flags="$flags --disable-stack-protector"
+        flags="$flags --enable-attr"
+        flags="$flags --enable-kvm"
+        flags="$flags --enable-virtfs"
+        flags="$flags --static"
         ;;
 esac
 

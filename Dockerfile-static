@@ -2,12 +2,20 @@ ARG OS_VER=latest
 FROM alpine:${OS_VER}
 RUN set -eux;\
     apk --no-cache add\
+ autoconf\
+ automake\
  bash\
  ccache\
  gcc\
+ git\
  glib-dev\
  glib-static\
  libc-dev\
+ libcap-dev\
+ libcap-ng-dev\
+ libcap-ng-static\
+ libcap-static\
+ libtool\
  linux-headers\
  make\
  ncurses-dev\

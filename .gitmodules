@@ -7,3 +7,6 @@
 [submodule "libslirp"]
 	path = libslirp
 	url = https://gitlab.freedesktop.org/slirp/libslirp.git
+[submodule "attr"]
+	path = attr
+	url = https://git.savannah.nongnu.org/git/attr.git

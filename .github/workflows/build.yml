@@ -62,7 +62,7 @@ jobs:
     - name: checkout
       uses: actions/checkout@v3
       with:
-        submodules: ${{ fromJson('{"w64-qemu":"recursive"}')[matrix.build] }}
+        submodules: recursive
     - name: winhv
       uses: actions/download-artifact@v3
       if: matrix.build == 'w64-qemu'
