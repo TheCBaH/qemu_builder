@@ -10,6 +10,8 @@ RUN set -eux;\
  libc-dev\
  linux-headers\
  make\
+ ncurses-dev\
+ ncurses-static\
  perl\
  pixman-dev\
  pixman-static\
