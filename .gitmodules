@@ -1,0 +1,9 @@
+[submodule "glib"]
+	path = glib
+	url = https://github.com/GNOME/glib.git
+[submodule "pixman"]
+	path = pixman
+	url = https://github.com/freedesktop/pixman.git
+[submodule "libslirp"]
+	path = libslirp
+	url = https://gitlab.freedesktop.org/slirp/libslirp.git

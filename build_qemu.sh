@@ -11,11 +11,17 @@ cflags=''
 cc='cc'
 _exe=''
 cross=''
-env=''
 targets=''
 
 qemu_root=../../..
 configure=$qemu_root/configure
+
+do_meson() {(
+    cd $root/../$1
+    meson setup --prefix $root/local $static --cross-file ../cross_file_mingw_w64.txt _build
+    meson compile -C _build
+    meson install -C _build
+)}
 
 do_w64_qemu_config() {
     _exe='.exe'
@@ -27,6 +33,13 @@ do_w64_qemu_config() {
         flags="$flags --enable-whpx"
         cflags="-I$(readlink -f $winhv)"
     fi
+    export LIBS="-luuid -lole32"
+    export PKG_CONFIG_PATH=$root/local/lib/pkgconfig
+    static='--default-library static'
+    meson_setup="--prefix $root/local $static --cross-file ../cross_file_mingw_w64.txt _build"
+    for lib in glib pixman libslirp; do
+        do_meson $lib
+    done
 }
 
 case $target in
@@ -49,7 +62,7 @@ if grep -q enable-lto $configure; then
     targets="qemu-img${_exe} qemu-system-x86_64${_exe}"
 fi
 
-env $env $configure --cc="ccache $cc $cflags"\
+env $configure --cc="ccache $cc $cflags"\
  --disable-capstone\
  --disable-debug-info\
  --disable-gtk\
@@ -67,15 +80,6 @@ mkdir -p $release_dir
 release_dir_abs=$(readlink -f $release_dir)
 
 do_w64_qemu_release() {
-
-    cp -pv \
-    /usr/x86_64-w64-mingw32/sys-root/mingw/bin/iconv.dll\
-    /usr/x86_64-w64-mingw32/sys-root/mingw/bin/zlib1.dll\
-    $release_dir
-
-    for l in gio-2.0-0 glib-2.0-0 gobject-2.0-0 pixman-1-0 pcre-1 intl-8 gmodule-2.0-0 ffi-6 ; do
-        cp -pv /usr/x86_64-w64-mingw32/sys-root/mingw/bin/lib${l}.dll $release_dir/
-    done
 
     for l in gcc_s_seh-1 ssp-0; do
         cp -pv /usr/lib/gcc/x86_64-w64-mingw32/*-win32/lib${l}.dll $release_dir/

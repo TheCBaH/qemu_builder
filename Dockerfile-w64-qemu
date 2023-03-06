@@ -3,15 +3,17 @@ FROM debian:${OS_VER}
 RUN set -eux;\
     apt-get update;\
     env DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends\
+ bison\
  build-essential\
  ca-certificates\
  ccache\
- curl\
+ flex\
  g++-mingw-w64\
  gcc\
- gnupg\
+ git-core\
  libc6-dev\
  make\
+ meson\
  mingw-w64-tools\
  mingw-w64-x86-64-dev\
  mingw-w64\
@@ -19,18 +21,5 @@ RUN set -eux;\
  python3-distutils\
  python3\
 ;\
-    curl --show-error --silent https://qemu.weilnetz.de/debian/weilnetz.gpg >/etc/apt/trusted.gpg.d/weilnetz.gpg;\
-    echo 'deb https://qemu.weilnetz.de/debian/ testing contrib' >/etc/apt/sources.list.d/cygwin.list;\
-    apt-get update;\
-    apt-get install -y --no-install-recommends\
- mingw64-x86-64-glib2.0\
- mingw64-x86-64-pixman\
-;\
-    apt-get purge -y\
- ca-certificates\
- curl\
- gnupg\
-;\
-    apt-get autoremove -y;\
     apt-get clean; rm -rf /var/lib/apt/lists/*;\
     echo DONE
