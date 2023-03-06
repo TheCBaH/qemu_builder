@@ -3,6 +3,7 @@ set -x
 set -eu
 # based on https://qemu.weilnetz.de/doc/BUILD.txt
 target=$1;shift
+root=$(readlink -f $(pwd)/qemu)
 mkdir -p qemu/bin/ndebug/$target
 cd qemu/bin/ndebug/$target
 flags=''
@@ -63,6 +64,7 @@ make $targets $@
 release_dir=.release
 rm -rf $release_dir
 mkdir -p $release_dir
+release_dir_abs=$(readlink -f $release_dir)
 
 do_w64_qemu_release() {
 
@@ -97,9 +99,14 @@ else
     mv x86_64-softmmu/qemu-system-x86_64${_exe} $release_dir
 fi
 ${cross}strip $release_dir/qemu*
+(
+if [ ! -f pc-bios/bios-256k.bin ]; then
+    cd $root
+fi
 cp -pv \
  pc-bios/bios-256k.bin\
  pc-bios/efi-virtio.rom\
  pc-bios/kvmvapic.bin\
  pc-bios/linuxboot_dma.bin\
- $release_dir
+ $release_dir_abs
+)
