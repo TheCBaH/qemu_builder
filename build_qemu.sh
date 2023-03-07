@@ -42,11 +42,6 @@ esac
 if $configure --help | grep -q 'with-git-submodules'; then
     flags="$flags --with-git-submodules=validate"
 fi
-if grep -q python3 $configure; then
-    true
-else
-    flags="$flags --python=$(which python2)"
-fi
 
 if grep -q enable-lto $configure; then
     flags="$flags --enable-lto"
